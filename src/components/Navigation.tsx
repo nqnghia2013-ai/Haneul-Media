@@ -13,7 +13,12 @@ interface NavigationProps {
 }
 
 export function Navigation({ currentView, onChangeView, onToggleNotifications, unreadCount }: NavigationProps) {
-  const { theme, toggleTheme, currentUser } = useStore();
+  const { theme, toggleTheme, currentUser, setCurrentUser } = useStore();
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    logout();
+  };
 
   const navItems = [
     { id: 'feed', label: 'Bảng tin', icon: Home },
@@ -97,7 +102,7 @@ export function Navigation({ currentView, onChangeView, onToggleNotifications, u
               </div>
             </div>
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors relative group"
             >
               <LogOut size={22} className="stroke-[2] group-hover:scale-110 transition-transform" />

@@ -20,6 +20,7 @@ function LoadingView() {
 }
 
 function LoginView() {
+  const { setCurrentUser } = useStore();
   return (
     <div className="flex-1 flex flex-col items-center justify-center min-h-screen bg-slate-50 text-slate-800 p-4">
        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center border border-slate-100">
@@ -46,6 +47,19 @@ function LoginView() {
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
            </svg>
            Đăng nhập với Google
+         </button>
+
+         <button
+            onClick={() => {
+              setCurrentUser({
+                id: 'guest_' + Math.random().toString(36).substring(2, 9),
+                name: 'Khách',
+                role: 'viewer'
+              });
+            }}
+            className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-slate-100 text-slate-700/80 rounded-xl font-bold hover:bg-slate-200 hover:text-slate-900 transition-all active:scale-[0.98] mt-3 border border-slate-200/50"
+         >
+           Đăng nhập ẩn danh (Chỉ xem)
          </button>
        </div>
     </div>
