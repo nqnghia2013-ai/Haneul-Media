@@ -41,20 +41,20 @@ service cloud.firestore {
     }
 
     match /contents/{contentId} {
-      allow list: if isSignedIn();
-      allow get: if isSignedIn() && isValidId(contentId);
+      allow list: if true;
+      allow get: if isValidId(contentId);
       allow create, update, delete: if isAdmin();
     }
     
     match /members/{memberId} {
-      allow list: if isSignedIn();
-      allow get: if isSignedIn() && isValidId(memberId);
+      allow list: if true;
+      allow get: if isValidId(memberId);
       allow create, update, delete: if isAdmin();
     }
     
     match /schedules/{scheduleId} {
-      allow list: if isSignedIn();
-      allow get: if isSignedIn() && isValidId(scheduleId);
+      allow list: if true;
+      allow get: if isValidId(scheduleId);
       allow create, update, delete: if isAdmin();
     }
   }
