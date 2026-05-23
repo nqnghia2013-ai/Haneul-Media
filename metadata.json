@@ -1,0 +1,6 @@
+{
+  "name": "Haneul Media",
+  "description": "Nền tảng truyền thông nội bộ dành cho học sinh, với cập tin tức, lịch phát sóng video và hệ thống lưu trữ offline.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

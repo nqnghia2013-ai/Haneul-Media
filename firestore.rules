@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'nqnghia2013@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidContent(data) {
+      return data.keys().hasAll(['title', 'type', 'createdAt']) &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+        data.type is string &&
+        data.createdAt is string;
+    }
+
+    function isValidMember(data) {
+      return data.keys().hasAll(['name', 'role']) &&
+        data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+        data.role is string;
+    }
+
+    function isValidSchedule(data) {
+      return data.keys().hasAll(['title', 'date', 'status']) &&
+        data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+        data.date is string &&
+        data.status is string;
+    }
+
+    match /contents/{contentId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && isValidId(contentId);
+      allow create, update, delete: if isAdmin();
+    }
+    
+    match /members/{memberId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && isValidId(memberId);
+      allow create, update, delete: if isAdmin();
+    }
+    
+    match /schedules/{scheduleId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn() && isValidId(scheduleId);
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
