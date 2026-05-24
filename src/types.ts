@@ -39,6 +39,7 @@ export interface ContentItem {
   createdAt: string;
   comments: Comment[];
   isSaved?: boolean; // For offline viewing
+  broadcastTime?: string; // ISO string for broadcast time
 }
 
 export interface BroadcastInfo {

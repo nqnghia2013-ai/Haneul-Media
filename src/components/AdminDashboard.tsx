@@ -13,7 +13,8 @@ export function AdminDashboard() {
   const [editingContentId, setEditingContentId] = useState<string | null>(null);
   const [contentForm, setContentForm] = useState({ 
     title: '', description: '', content: '', type: 'news', category: 'Tin Tức', 
-    authorId: currentUser?.id || '', authorName: '', thumbnailUrl: '', videoUrl: '', status: 'published' as 'published' | 'upcoming' | 'live' 
+    authorId: currentUser?.id || '', authorName: '', thumbnailUrl: '', videoUrl: '', status: 'published' as 'published' | 'upcoming' | 'live',
+    broadcastTime: ''
   });
   
   const [showMemberModal, setShowMemberModal] = useState(false);
@@ -44,7 +45,8 @@ export function AdminDashboard() {
       authorName: c.authorName || '',
       thumbnailUrl: c.thumbnailUrl,
       videoUrl: c.videoUrl || '',
-      status: c.status || 'published'
+      status: c.status || 'published',
+      broadcastTime: c.broadcastTime || ''
     });
     setShowContentModal(true);
   };
@@ -467,10 +469,16 @@ export function AdminDashboard() {
                     </div>
                   </div>
                   {contentForm.type === 'video' && (
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1">URL Video</label>
-                      <input required={contentForm.status === 'published'} type="url" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.videoUrl} onChange={e => setContentForm({...contentForm, videoUrl: e.target.value})} />
-                    </div>
+                    <>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">URL Video</label>
+                        <input required={contentForm.status === 'published'} type="url" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.videoUrl} onChange={e => setContentForm({...contentForm, videoUrl: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Thời gian phát sóng (tùy chọn)</label>
+                        <input type="datetime-local" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.broadcastTime} onChange={e => setContentForm({...contentForm, broadcastTime: e.target.value})} />
+                      </div>
+                    </>
                   )}
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">Mô tả ngắn</label>

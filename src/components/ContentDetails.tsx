@@ -29,6 +29,21 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
     }
   };
 
+  const isAuthor = currentUser?.id === content.authorId;
+  const canBypass = currentUser?.role === 'haneul_director' || currentUser?.role === 'assistant_director' || isAuthor;
+  
+  let isNotBroadcasted = false;
+  if (content.type === 'video' && !canBypass) {
+    if (content.broadcastTime) {
+      const broadcastDate = new Date(content.broadcastTime);
+      if (new Date() < broadcastDate) {
+        isNotBroadcasted = true;
+      }
+    } else if (content.status === 'upcoming') {
+      isNotBroadcasted = true;
+    }
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -67,8 +82,25 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
           transition={{ delay: 0.1 }}
         >
           {content.type === 'video' && content.videoUrl && (
-            <div className="w-full aspect-video bg-slate-900 rounded-3xl overflow-hidden mb-8 shadow-xl">
-              {(() => {
+            <div className="w-full aspect-video bg-slate-900 rounded-3xl overflow-hidden mb-8 shadow-xl relative text-white flex items-center justify-center">
+              {isNotBroadcasted ? (
+                <div className="text-center p-6 backdrop-blur-md bg-black/40 rounded-2xl border border-white/10 m-4 relative z-10 w-full max-w-lg">
+                  <div className="mx-auto w-16 h-16 bg-slate-800/80 rounded-full flex items-center justify-center mb-4">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect x="2" y="4" width="20" height="16" rx="2" ry="2" fill="#94A3B8" />
+                      <line x1="8" y1="4" x2="8" y2="20" stroke="#1E293B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <line x1="16" y1="4" x2="16" y2="20" stroke="#1E293B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx="12" cy="12" r="2" fill="#1E293B" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Video chưa được phát sóng</h3>
+                  <p className="text-slate-300">
+                    {content.broadcastTime 
+                      ? <>Hãy quay lại vào {format(new Date(content.broadcastTime), "HH:mm 'ngày' dd/MM/yyyy", { locale: vi })}</>
+                      : 'Lịch phát sóng chưa được công bố cụ thể'}
+                  </p>
+                </div>
+              ) : (() => {
                 const getYoutubeEmbedUrl = (url: string) => {
                   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
                   const match = url.match(regExp);
@@ -104,6 +136,12 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                   />
                 );
               })()}
+              {isNotBroadcasted && (
+                <div 
+                  className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40 blur-sm brightness-50"
+                  style={{ backgroundImage: `url(${content.thumbnailUrl})` }}
+                />
+              )}
             </div>
           )}
 

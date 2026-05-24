@@ -17,6 +17,17 @@ export function ContentCard({ content, onOpenDetails }: ContentCardProps) {
   const author = members.find(m => m.id === content.authorId);
   const authorName = content.authorName || author?.name || 'Ẩn danh';
 
+  let displayStatus = content.status;
+  if (content.type === 'video' && content.broadcastTime) {
+    const broadcastDate = new Date(content.broadcastTime);
+    const now = new Date();
+    if (now < broadcastDate) {
+      displayStatus = 'upcoming';
+    } else if (content.status === 'upcoming') {
+      displayStatus = 'live';
+    }
+  }
+
   return (
     <div className="bg-transparent flex flex-col h-full group">
       <div 
@@ -47,12 +58,12 @@ export function ContentCard({ content, onOpenDetails }: ContentCardProps) {
           )}
         </div>
         <div className="absolute top-2 left-2 flex gap-1">
-          {content.status === 'upcoming' && (
+          {displayStatus === 'upcoming' && (
             <span className="px-2 py-1 bg-amber-500/90 backdrop-blur-md text-[10px] font-bold rounded text-white shadow-sm">
               Sắp phát sóng
             </span>
           )}
-          {content.status === 'live' && (
+          {displayStatus === 'live' && (
             <span className="px-2 py-1 bg-red-600/90 backdrop-blur-md text-[10px] font-bold rounded text-white shadow-sm flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> LIVE
             </span>
