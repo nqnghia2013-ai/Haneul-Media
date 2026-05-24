@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { ArrowLeft, Send, Bookmark } from 'lucide-react';
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
@@ -30,14 +30,45 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
   };
 
   const isAuthor = currentUser?.id === content.authorId;
-  const canBypass = currentUser?.role === 'haneul_director' || currentUser?.role === 'assistant_director' || isAuthor;
+  const isAdmin = currentUser?.role === 'haneul_director' || currentUser?.role === 'assistant_director';
   
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    if (content.type === 'video' && (content.broadcastTime || content.status === 'upcoming')) {
+      interval = setInterval(() => setNow(new Date()), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [content.type, content.broadcastTime, content.status]);
+
   let isNotBroadcasted = false;
-  if (content.type === 'video' && !canBypass) {
+  let timeRemainingFormatted = '';
+  
+  if (content.type === 'video') {
     if (content.broadcastTime) {
       const broadcastDate = new Date(content.broadcastTime);
-      if (new Date() < broadcastDate) {
+      if (now < broadcastDate) {
         isNotBroadcasted = true;
+        
+        const diffMs = broadcastDate.getTime() - now.getTime();
+        const diffSecs = Math.floor(diffMs / 1000);
+        
+        const days = Math.floor(diffSecs / 86400);
+        const hours = Math.floor((diffSecs % 86400) / 3600);
+        const minutes = Math.floor((diffSecs % 3600) / 60);
+        const seconds = diffSecs % 60;
+        
+        if (days >= 0 && (hours > 0 || minutes > 0 || seconds > 0)) {
+          if (days > 0) {
+            timeRemainingFormatted = `${days} ngày ${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          }
+          else if (hours > 0) {
+            timeRemainingFormatted = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          } else {
+            timeRemainingFormatted = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+          }
+        }
       }
     } else if (content.status === 'upcoming') {
       isNotBroadcasted = true;
@@ -93,18 +124,32 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                       <circle cx="12" cy="12" r="2" fill="#1E293B" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold mb-2">Video chưa được phát sóng</h3>
-                  <p className="text-slate-300">
-                    {content.broadcastTime 
-                      ? <>Hãy quay lại vào {format(new Date(content.broadcastTime), "HH:mm 'ngày' dd/MM/yyyy", { locale: vi })}</>
-                      : 'Lịch phát sóng chưa được công bố cụ thể'}
-                  </p>
+                  {timeRemainingFormatted ? (
+                    <>
+                      <h3 className="text-xl font-bold mb-2">Video sắp bắt đầu</h3>
+                      <div className="text-4xl sm:text-5xl font-mono font-bold text-white mb-2 py-4">
+                         {timeRemainingFormatted}
+                      </div>
+                      <p className="text-slate-300">
+                        Sắp tự động phát
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-xl font-bold mb-2">Video chưa được phát sóng</h3>
+                      <p className="text-slate-300">
+                        {content.broadcastTime 
+                          ? <>Hãy quay lại vào {format(new Date(content.broadcastTime), "HH:mm 'ngày' dd/MM/yyyy", { locale: vi })}</>
+                          : 'Lịch phát sóng chưa được công bố cụ thể'}
+                      </p>
+                    </>
+                  )}
                 </div>
               ) : (() => {
                 const getYoutubeEmbedUrl = (url: string) => {
                   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
                   const match = url.match(regExp);
-                  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+                  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}?autoplay=1` : null;
                 };
                 const getDriveEmbedUrl = (url: string) => {
                   const regExp = /\/file\/d\/([a-zA-Z0-9_-]+)/;
@@ -130,6 +175,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                 return (
                   <video 
                     controls 
+                    autoPlay
                     src={content.videoUrl} 
                     poster={content.thumbnailUrl}
                     className="w-full h-full"
