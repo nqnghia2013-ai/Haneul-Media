@@ -31,6 +31,34 @@ interface StoreContextType extends AppState {
   deleteSchedule: (id: string) => Promise<void>;
 }
 
+const playNotificationSound = () => {
+  try {
+    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const playNote = (freq: number, startTime: number, duration: number) => {
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+      
+      gainNode.gain.setValueAtTime(0, audioCtx.currentTime + startTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + startTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + startTime + duration);
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      oscillator.start(audioCtx.currentTime + startTime);
+      oscillator.stop(audioCtx.currentTime + startTime + duration);
+    };
+    
+    playNote(523.25, 0, 0.2); // C5
+    playNote(659.25, 0.15, 0.4); // E5
+  } catch (e) {
+    // Ignore audio errors
+  }
+};
+
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
@@ -63,6 +91,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // Request notification permission if it hasn't been requested
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        // Option to request immediately or wait for user interaction. 
+        // We will try requesting immediately, modern browsers may ignore if not interactive.
+        Notification.requestPermission().catch(() => {});
+      }
+    }
   }, [state.theme, state.savedContentIds, state.notifications]);
 
   useEffect(() => {
@@ -93,11 +130,49 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!state.currentUser) return;
     
+    let isInitialContentsLoad = true;
+    
     const unsubscribeContents = onSnapshot(collection(db, 'contents'), (snapshot) => {
       const contentsData: ContentItem[] = [];
       snapshot.forEach(doc => contentsData.push({ id: doc.id, ...doc.data() } as ContentItem));
       // Sort by createdAt descending
       contentsData.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      if (!isInitialContentsLoad) {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'added') {
+            const data = change.doc.data();
+            if (data.authorId !== state.currentUser?.id) {
+              const title = 'Bài viết mới';
+              const message = `"${data.title}" vừa được đăng tải!`;
+              const newNotif: AppNotification = {
+                id: Math.random().toString(36).substr(2, 9),
+                title,
+                message,
+                isRead: false,
+                createdAt: new Date().toISOString(),
+              };
+              setState(prev => ({ ...prev, notifications: [newNotif, ...prev.notifications] }));
+              
+              playNotificationSound();
+              
+              if (typeof window !== 'undefined' && 'Notification' in window) {
+                if (Notification.permission === 'granted') {
+                  new Notification(title, { body: message });
+                } else if (Notification.permission !== 'denied') {
+                  Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                      new Notification(title, { body: message });
+                    }
+                  });
+                }
+              }
+            }
+          }
+        });
+      }
+      isInitialContentsLoad = false;
+      
       setState(prev => ({ ...prev, contents: contentsData }));
     }, (error) => {
       console.error("Error fetching contents: ", error);
@@ -225,6 +300,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       createdAt: new Date().toISOString(),
     };
     setState(prev => ({ ...prev, notifications: [newNotif, ...prev.notifications] }));
+    
+    playNotificationSound();
     
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'granted') {
