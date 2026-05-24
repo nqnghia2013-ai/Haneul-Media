@@ -35,6 +35,7 @@ export interface ContentItem {
   content?: string; // If type is news
   authorId: string;
   authorName?: string; // Custom author name when posting
+  authorImageUrl?: string; // Custom author image when posting
   status?: 'published' | 'upcoming' | 'live'; // Status of the content
   createdAt: string;
   comments: Comment[];

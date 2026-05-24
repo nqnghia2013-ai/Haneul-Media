@@ -228,7 +228,9 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-y border-slate-200 mb-8">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shadow-sm">
-                 {author?.imageUrl ? (
+                 {content.authorImageUrl ? (
+                   <img src={content.authorImageUrl} alt={authorName} className="w-full h-full object-cover" />
+                 ) : author?.imageUrl ? (
                    <img src={author.imageUrl} alt={author.name} className="w-full h-full object-cover" />
                  ) : (
                    <div className="w-full h-full flex items-center justify-center font-bold text-slate-500 bg-slate-50">{authorName[0]}</div>

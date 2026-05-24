@@ -13,7 +13,7 @@ export function AdminDashboard() {
   const [editingContentId, setEditingContentId] = useState<string | null>(null);
   const [contentForm, setContentForm] = useState({ 
     title: '', description: '', content: '', type: 'news', category: 'Tin Tức', 
-    authorId: currentUser?.id || '', authorName: '', thumbnailUrl: '', videoUrl: '', status: 'published' as 'published' | 'upcoming' | 'live',
+    authorId: currentUser?.id || '', authorName: '', authorImageUrl: '', thumbnailUrl: '', videoUrl: '', status: 'published' as 'published' | 'upcoming' | 'live',
     broadcastTime: ''
   });
   
@@ -43,6 +43,7 @@ export function AdminDashboard() {
       category: c.category as any,
       authorId: c.authorId,
       authorName: c.authorName || '',
+      authorImageUrl: c.authorImageUrl || '',
       thumbnailUrl: c.thumbnailUrl,
       videoUrl: c.videoUrl || '',
       status: c.status || 'published',
@@ -166,7 +167,8 @@ export function AdminDashboard() {
     setEditingContentId(null);
     setContentForm({ 
       title: '', description: '', content: '', type: 'news', category: 'Tin Tức', 
-      authorId: currentUser?.id || '', authorName: '', thumbnailUrl: '', videoUrl: '', status: 'published' 
+      authorId: currentUser?.id || '', authorName: '', authorImageUrl: '', thumbnailUrl: '', videoUrl: '', status: 'published',
+      broadcastTime: ''
     });
   };
 
@@ -437,9 +439,36 @@ export function AdminDashboard() {
                       <input required type="text" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.category} onChange={e => setContentForm({...contentForm, category: e.target.value})} />
                     </div>
                     <div className="flex-1">
-                      <label className="block text-sm font-bold text-slate-700 mb-1">Người đăng</label>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Tên người đăng</label>
                       <input type="text" placeholder="Tên để hiển thị" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.authorName} onChange={e => setContentForm({...contentForm, authorName: e.target.value})} />
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1">Ảnh đại diện người đăng</label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                       <input type="url" placeholder="Nhập URL ảnh đại diện" className="flex-1 px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.authorImageUrl} onChange={e => setContentForm({...contentForm, authorImageUrl: e.target.value})} />
+                       <input 
+                         type="file" 
+                         accept="image/*" 
+                         className="flex-1 text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer" 
+                         onChange={async (e) => {
+                           const file = e.target.files?.[0];
+                           if (file) {
+                             try {
+                               const compressedBase64 = await compressImage(file, 0.7);
+                               setContentForm({...contentForm, authorImageUrl: compressedBase64});
+                             } catch (error) {
+                               console.error("Error compressing image:", error);
+                             }
+                           }
+                         }}
+                       />
+                    </div>
+                    {contentForm.authorImageUrl && (
+                      <div className="mt-2 w-12 h-12 rounded-full overflow-hidden border border-slate-200">
+                        <img src={contentForm.authorImageUrl} alt="Author Preview" className="w-full h-full object-cover" />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">Ảnh bìa</label>

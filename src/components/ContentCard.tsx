@@ -74,7 +74,9 @@ export function ContentCard({ content, onOpenDetails }: ContentCardProps) {
       <div className="mt-3 flex gap-3 px-1">
         <div className="flex-shrink-0">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-            {author?.imageUrl ? (
+            {content.authorImageUrl ? (
+              <img src={content.authorImageUrl} alt={authorName} className="w-full h-full object-cover" />
+            ) : author?.imageUrl ? (
               <img src={author.imageUrl} alt={author.name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center font-bold text-sm text-slate-400 bg-slate-50">{authorName[0]}</div>
