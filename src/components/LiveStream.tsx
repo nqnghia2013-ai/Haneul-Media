@@ -46,7 +46,7 @@ export const LiveViewer = ({ streamId }: { streamId: string }) => {
         await pc.setLocalDescription(offer);
 
         // Save offer to Firestore to signal the broadcaster
-        viewerDocRef = doc(collection(db, `streams/${streamId}/viewers`));
+        viewerDocRef = doc(collection(db, 'streams', streamId, 'viewers'));
         await setDoc(viewerDocRef, { offer: { type: offer.type, sdp: offer.sdp } });
 
         // Listen for the broadcaster's answer
@@ -55,17 +55,17 @@ export const LiveViewer = ({ streamId }: { streamId: string }) => {
           if (data && data.answer && !pc?.currentRemoteDescription) {
             console.log("Received answer from broadcaster");
             const rtcAnswer = new RTCSessionDescription(data.answer);
-            pc?.setRemoteDescription(rtcAnswer);
+            pc?.setRemoteDescription(rtcAnswer).catch(console.error);
           }
         });
 
         // Listen for ice candidates from the broadcaster
-        unsubBroadcasterIce = onSnapshot(collection(db, `streams/${streamId}/viewers/${viewerDocRef.id}/broadcasterIce`), (snapshot: any) => {
+        unsubBroadcasterIce = onSnapshot(collection(db, 'streams', streamId, 'viewers', viewerDocRef.id, 'broadcasterIce'), (snapshot: any) => {
           snapshot.docChanges().forEach((change: any) => {
             if (change.type === 'added') {
               console.log("Received ICE candidate from broadcaster");
               const candidate = new RTCIceCandidate(change.doc.data());
-              pc?.addIceCandidate(candidate);
+              pc?.addIceCandidate(candidate).catch(console.error);
             }
           });
         });
@@ -73,13 +73,13 @@ export const LiveViewer = ({ streamId }: { streamId: string }) => {
         // Send our ice candidates to the broadcaster
         pc.onicecandidate = (event) => {
           if (event.candidate && viewerDocRef) {
-            addDoc(collection(db, `streams/${streamId}/viewers/${viewerDocRef.id}/viewerIce`), event.candidate.toJSON());
+            addDoc(collection(db, 'streams', streamId, 'viewers', viewerDocRef.id, 'viewerIce'), event.candidate.toJSON()).catch(console.error);
           }
         };
 
-      } catch (e) {
+      } catch (e: any) {
         console.error("Error setting up viewer: ", e);
-        setStatus('Không thể tải luồng trực tiếp.');
+        setStatus('Không thể tải luồng trực tiếp. Lỗi: ' + (e?.message || JSON.stringify(e)));
       }
     };
 
@@ -140,7 +140,7 @@ export const LiveBroadcaster = ({ streamId, liveSource }: { streamId: string, li
       setError(null);
 
       // Clean up old viewers first if starting fresh
-      const viewersColl = collection(db, `streams/${streamId}/viewers`);
+      const viewersColl = collection(db, 'streams', streamId, 'viewers');
       try {
         const existingDocs = await getDocs(viewersColl);
         existingDocs.forEach(d => deleteDoc(d.ref));
@@ -149,7 +149,7 @@ export const LiveBroadcaster = ({ streamId, liveSource }: { streamId: string, li
       }
 
       // Listen for viewers asking to join
-      unsubViewers = onSnapshot(collection(db, `streams/${streamId}/viewers`), (snapshot) => {
+      unsubViewers = onSnapshot(collection(db, 'streams', streamId, 'viewers'), (snapshot) => {
         snapshot.docChanges().forEach(async (change) => {
           const viewerId = change.doc.id;
           
@@ -180,13 +180,13 @@ export const LiveBroadcaster = ({ streamId, liveSource }: { streamId: string, li
             // Send our ICE candidates to viewer
             pc.onicecandidate = (event) => {
               if (event.candidate) {
-                addDoc(collection(db, `streams/${streamId}/viewers/${viewerId}/broadcasterIce`), event.candidate.toJSON());
+                addDoc(collection(db, 'streams', streamId, 'viewers', viewerId, 'broadcasterIce'), event.candidate.toJSON()).catch(console.error);
               }
             };
             
             // Listen for ICE candidates from viewer
             const unsubViewerIce = onSnapshot(
-              collection(db, `streams/${streamId}/viewers/${viewerId}/viewerIce`), 
+              collection(db, 'streams', streamId, 'viewers', viewerId, 'viewerIce'), 
               (snap) => {
                 snap.docChanges().forEach(c => {
                   if (c.type === 'added') {
