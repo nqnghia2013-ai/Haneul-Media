@@ -6,6 +6,7 @@ import { vi } from 'date-fns/locale';
 import { ContentItem } from '../types';
 import { useStore } from '../hooks/useStore';
 import { cn } from '../lib/utils';
+import { LiveViewer, LiveBroadcaster } from './LiveStream';
 
 interface ContentDetailsProps {
   content: ContentItem;
@@ -146,6 +147,15 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                   )}
                 </div>
               ) : (() => {
+                if (content.type === 'live' && ['camera', 'screen'].includes(content.liveSource || '')) {
+                  const isBroadcaster = currentUser?.id === content.authorId;
+                  if (isBroadcaster) {
+                    return <LiveBroadcaster streamId={content.id} liveSource={content.liveSource as 'camera'|'screen'} />;
+                  } else {
+                    return <LiveViewer streamId={content.id} />;
+                  }
+                }
+
                 const getYoutubeEmbedUrl = (url: string = '') => {
                   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
                   const match = url.match(regExp);
@@ -161,14 +171,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                   return match ? `https://drive.google.com/file/d/${match[1]}/preview` : null;
                 };
                 
-                let embedUrl = null;
-                if (content.type === 'live' && ['camera', 'screen'].includes(content.liveSource || '')) {
-                  const roomName = content.streamRoomId || `haneul_live_${content.id}`;
-                  const isBroadcaster = currentUser?.id === content.authorId;
-                  embedUrl = `https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=${!isBroadcaster}&config.startWithVideoMuted=${!isBroadcaster}`;
-                } else {
-                  embedUrl = getYoutubeEmbedUrl(content.videoUrl || '') || getFacebookEmbedUrl(content.videoUrl || '') || getDriveEmbedUrl(content.videoUrl || '');
-                }
+                const embedUrl = getYoutubeEmbedUrl(content.videoUrl || '') || getFacebookEmbedUrl(content.videoUrl || '') || getDriveEmbedUrl(content.videoUrl || '');
                 
                 if (embedUrl) {
                   return (
