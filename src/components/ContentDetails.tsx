@@ -36,7 +36,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
 
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
-    if (content.type === 'video' && (content.broadcastTime || content.status === 'upcoming')) {
+    if ((content.type === 'video' || content.type === 'live') && (content.broadcastTime || content.status === 'upcoming')) {
       interval = setInterval(() => setNow(new Date()), 1000);
     }
     return () => clearInterval(interval);
@@ -45,7 +45,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
   let isNotBroadcasted = false;
   let timeRemainingFormatted = '';
   
-  if (content.type === 'video') {
+  if (content.type === 'video' || content.type === 'live') {
     if (content.broadcastTime) {
       const broadcastDate = new Date(content.broadcastTime);
       if (now < broadcastDate) {
@@ -112,7 +112,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          {content.type === 'video' && content.videoUrl && (
+          {((content.type === 'video' && content.videoUrl) || content.type === 'live') && (
             <div className="w-full aspect-video bg-slate-900 rounded-3xl overflow-hidden mb-8 shadow-xl relative text-white flex items-center justify-center">
               {isNotBroadcasted ? (
                 <div className="text-center p-6 backdrop-blur-md bg-black/40 rounded-2xl border border-white/10 m-4 relative z-10 w-full max-w-lg">
@@ -146,27 +146,37 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                   )}
                 </div>
               ) : (() => {
-                const getYoutubeEmbedUrl = (url: string) => {
+                const getYoutubeEmbedUrl = (url: string = '') => {
                   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
                   const match = url.match(regExp);
                   return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}?autoplay=1` : null;
                 };
-                const getDriveEmbedUrl = (url: string) => {
+                const getFacebookEmbedUrl = (url: string = '') => {
+                  if (!url.includes('facebook.com')) return null;
+                  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=0&width=auto`;
+                };
+                const getDriveEmbedUrl = (url: string = '') => {
                   const regExp = /\/file\/d\/([a-zA-Z0-9_-]+)/;
                   const match = url.match(regExp);
                   return match ? `https://drive.google.com/file/d/${match[1]}/preview` : null;
                 };
                 
-                const youtubeEmbedUrl = getYoutubeEmbedUrl(content.videoUrl);
-                const driveEmbedUrl = getDriveEmbedUrl(content.videoUrl);
+                let embedUrl = null;
+                if (content.type === 'live' && ['camera', 'screen'].includes(content.liveSource || '')) {
+                  const roomName = content.streamRoomId || `haneul_live_${content.id}`;
+                  const isBroadcaster = currentUser?.id === content.authorId;
+                  embedUrl = `https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&config.startWithAudioMuted=${!isBroadcaster}&config.startWithVideoMuted=${!isBroadcaster}`;
+                } else {
+                  embedUrl = getYoutubeEmbedUrl(content.videoUrl || '') || getFacebookEmbedUrl(content.videoUrl || '') || getDriveEmbedUrl(content.videoUrl || '');
+                }
                 
-                if (youtubeEmbedUrl || driveEmbedUrl) {
+                if (embedUrl) {
                   return (
                     <iframe
-                      src={youtubeEmbedUrl || driveEmbedUrl || undefined}
+                      src={embedUrl}
                       title={content.title}
                       className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allow="camera; microphone; display-capture; fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />
                   );

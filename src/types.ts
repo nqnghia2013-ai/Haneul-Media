@@ -28,11 +28,13 @@ export interface ContentItem {
   id: string;
   title: string;
   description: string;
-  type: 'news' | 'video';
-  category: 'Trường học' | 'Lớp học' | 'Giải trí' | 'Sự kiện' | 'Phỏng vấn';
+  type: 'news' | 'video' | 'live';
+  category: 'Trường học' | 'Lớp học' | 'Giải trí' | 'Sự kiện' | 'Phỏng vấn' | 'Tin Tức';
   thumbnailUrl: string;
-  videoUrl?: string; // If type is video
+  videoUrl?: string; // If type is video or live (link)
   content?: string; // If type is news
+  liveSource?: 'youtube' | 'facebook' | 'camera' | 'screen';
+  streamRoomId?: string; // For WebRTC or meeting id
   authorId: string;
   authorName?: string; // Custom author name when posting
   authorImageUrl?: string; // Custom author image when posting

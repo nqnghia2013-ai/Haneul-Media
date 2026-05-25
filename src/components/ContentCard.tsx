@@ -18,7 +18,7 @@ export function ContentCard({ content, onOpenDetails }: ContentCardProps) {
   const authorName = content.authorName || author?.name || 'Ẩn danh';
 
   let displayStatus = content.status;
-  if (content.type === 'video' && content.broadcastTime) {
+  if ((content.type === 'video' || content.type === 'live') && content.broadcastTime) {
     const broadcastDate = new Date(content.broadcastTime);
     const now = new Date();
     if (now < broadcastDate) {
@@ -39,7 +39,7 @@ export function ContentCard({ content, onOpenDetails }: ContentCardProps) {
           alt={content.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        {content.type === 'video' && (
+        {(content.type === 'video' || content.type === 'live') && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10">
             <div className="w-14 h-14 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center transform group-hover:scale-110 transition-transform">
               <PlayCircle className="text-white w-8 h-8 ml-1" />
@@ -47,9 +47,9 @@ export function ContentCard({ content, onOpenDetails }: ContentCardProps) {
           </div>
         )}
         <div className="absolute bottom-2 right-2 flex gap-1">
-          {content.type === 'video' ? (
+          {content.type === 'video' || content.type === 'live' ? (
              <span className="px-2 py-1 bg-black/80 backdrop-blur-md text-[10px] font-medium rounded text-white flex items-center gap-1">
-               Video
+               {content.type === 'live' ? 'Live' : 'Video'}
              </span>
           ) : (
             <span className="px-2 py-1 bg-blue-600/90 text-[10px] font-medium rounded text-white font-medium">

@@ -14,7 +14,7 @@ export function AdminDashboard() {
   const [contentForm, setContentForm] = useState({ 
     title: '', description: '', content: '', type: 'news', category: 'Tin Tức', 
     authorId: currentUser?.id || '', authorName: '', authorImageUrl: '', thumbnailUrl: '', videoUrl: '', status: 'published' as 'published' | 'upcoming' | 'live',
-    broadcastTime: ''
+    broadcastTime: '', liveSource: 'youtube' as 'youtube' | 'facebook' | 'camera' | 'screen'
   });
   
   const [showMemberModal, setShowMemberModal] = useState(false);
@@ -47,7 +47,8 @@ export function AdminDashboard() {
       thumbnailUrl: c.thumbnailUrl,
       videoUrl: c.videoUrl || '',
       status: c.status || 'published',
-      broadcastTime: c.broadcastTime || ''
+      broadcastTime: c.broadcastTime || '',
+      liveSource: c.liveSource || 'youtube'
     });
     setShowContentModal(true);
   };
@@ -149,14 +150,17 @@ export function AdminDashboard() {
         updateContent({
           ...existing,
           ...contentForm,
-          type: contentForm.type as 'video' | 'news',
+          type: contentForm.type as 'video' | 'news' | 'live',
+          liveSource: contentForm.type === 'live' ? contentForm.liveSource : undefined,
         });
       }
     } else {
       const newContent: ContentItem = {
         id: Math.random().toString(36).substr(2, 9),
         ...contentForm,
-        type: contentForm.type as 'video' | 'news',
+        type: contentForm.type as 'video' | 'news' | 'live',
+        liveSource: contentForm.type === 'live' ? contentForm.liveSource : undefined,
+        streamRoomId: contentForm.type === 'live' && ['camera', 'screen'].includes(contentForm.liveSource) ? `live_${Date.now()}` : undefined,
         viewCount: 0,
         createdAt: new Date().toISOString(),
         comments: []
@@ -168,7 +172,7 @@ export function AdminDashboard() {
     setContentForm({ 
       title: '', description: '', content: '', type: 'news', category: 'Tin Tức', 
       authorId: currentUser?.id || '', authorName: '', authorImageUrl: '', thumbnailUrl: '', videoUrl: '', status: 'published',
-      broadcastTime: ''
+      broadcastTime: '', liveSource: 'youtube'
     });
   };
 
@@ -422,6 +426,7 @@ export function AdminDashboard() {
                       <select className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.type} onChange={e => setContentForm({...contentForm, type: e.target.value})}>
                         <option value="news">Tin tức</option>
                         <option value="video">Video</option>
+                        <option value="live">Phát trực tiếp</option>
                       </select>
                     </div>
                     <div className="flex-1">
@@ -433,6 +438,25 @@ export function AdminDashboard() {
                       </select>
                     </div>
                   </div>
+                  {contentForm.type === 'live' && (
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-bold text-slate-700 mb-1">Nguồn Phát</label>
+                        <select className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.liveSource} onChange={e => setContentForm({...contentForm, liveSource: e.target.value as any})}>
+                          <option value="youtube">Youtube Liên Kết</option>
+                          <option value="facebook">Facebook Liên Kết</option>
+                          <option value="camera">Live từ Camera Thiết bị</option>
+                          <option value="screen">Live từ Màn hình</option>
+                        </select>
+                      </div>
+                      {['youtube', 'facebook'].includes(contentForm.liveSource || '') && (
+                        <div className="flex-[2]">
+                          <label className="block text-sm font-bold text-slate-700 mb-1">URL Liên kết trực tiếp</label>
+                          <input required type="url" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.videoUrl} onChange={e => setContentForm({...contentForm, videoUrl: e.target.value})} placeholder="https://" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <label className="block text-sm font-bold text-slate-700 mb-1">Chuyên mục</label>
