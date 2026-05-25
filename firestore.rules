@@ -57,5 +57,9 @@ service cloud.firestore {
       allow get: if isValidId(scheduleId);
       allow create, update, delete: if isAdmin();
     }
+    
+    match /streams/{document=**} {
+      allow read, write: if isSignedIn();
+    }
   }
 }
