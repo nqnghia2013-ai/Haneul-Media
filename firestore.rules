@@ -59,7 +59,7 @@ service cloud.firestore {
     }
     
     match /streams/{document=**} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
   }
 }
