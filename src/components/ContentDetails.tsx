@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Send, Bookmark } from 'lucide-react';
+import { ArrowLeft, Send, Bookmark, Share2 } from 'lucide-react';
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { ContentItem } from '../types';
@@ -27,6 +27,27 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
     if (commentText.trim()) {
       addComment(content.id, commentText);
       setCommentText('');
+    }
+  };
+
+  const handleShare = async () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(content.type === 'live' ? 'liveId' : 'contentId', content.id);
+    const shareUrl = url.toString();
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: content.title,
+          text: content.description,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      alert('Đã sao chép liên kết vào clipboard!');
     }
   };
 
@@ -92,6 +113,13 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
           <span className="text-sm font-bold hidden sm:block">Quay lại</span>
         </button>
         <div className="flex gap-2">
+          <button 
+            className="p-2 rounded-xl transition-all duration-300 flex items-center gap-2 px-4 border text-[10px] uppercase tracking-wider font-bold shadow-sm text-slate-500 hover:text-slate-800 bg-white border-slate-200 hover:bg-slate-50"
+            onClick={handleShare}
+          >
+            <Share2 size={18} className="transition-transform" />
+            <span className="hidden sm:inline">Chia sẻ</span>
+          </button>
            <button 
             className={cn(
               "p-2 rounded-xl transition-all duration-300 flex items-center gap-2 px-4 border text-[10px] uppercase tracking-wider font-bold shadow-sm",
@@ -107,14 +135,14 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
+      <div className={cn("mx-auto p-4 md:p-8", content.type === 'live' ? 'max-w-7xl' : 'max-w-4xl')}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
           {((content.type === 'video' && content.videoUrl) || content.type === 'live') && (
-            <div className="w-full aspect-video bg-slate-900 rounded-3xl overflow-hidden mb-8 shadow-xl relative text-white flex items-center justify-center">
+            <div className={cn("w-full bg-slate-900 rounded-3xl overflow-hidden mb-8 shadow-xl relative text-white flex items-center justify-center", content.type === 'live' ? 'h-[50vh] md:h-[75vh]' : 'aspect-video')}>
               {isNotBroadcasted ? (
                 <div className="text-center p-6 backdrop-blur-md bg-black/40 rounded-2xl border border-white/10 m-4 relative z-10 w-full max-w-lg">
                   <div className="mx-auto w-16 h-16 bg-slate-800/80 rounded-full flex items-center justify-center mb-4">
@@ -157,7 +185,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                 }
 
                 const getYoutubeEmbedUrl = (url: string = '') => {
-                  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|live\/)([^#&?]*).*/;
                   const match = url.match(regExp);
                   return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}?autoplay=1` : null;
                 };

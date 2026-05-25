@@ -68,7 +68,10 @@ function LoginView() {
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('feed');
-  const [activeContentId, setActiveContentId] = useState<string | null>(null);
+  const [activeContentId, setActiveContentId] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('contentId') || params.get('liveId') || null;
+  });
   const [showNotifications, setShowNotifications] = useState(false);
   const { notifications, currentUser, authLoaded, contents } = useStore();
   

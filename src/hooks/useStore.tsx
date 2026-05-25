@@ -318,7 +318,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const addContent = async (content: ContentItem) => {
     try {
-      await setDoc(doc(db, 'contents', content.id), content);
+      const cleanContent = Object.fromEntries(Object.entries(content).filter(([_, v]) => v !== undefined));
+      await setDoc(doc(db, 'contents', content.id), cleanContent);
       /* Only local notification needed since others will get it via snapshot, but wait...
          Snapshot triggers locally too. We can trigger local notification when another added. */
       addNotification('Bài viết mới', `"${content.title}" vừa được đăng tải!`);
@@ -330,7 +331,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const updateContent = async (content: ContentItem) => {
     try {
-      await updateDoc(doc(db, 'contents', content.id), content as any);
+      const cleanContent = Object.fromEntries(Object.entries(content).filter(([_, v]) => v !== undefined));
+      await updateDoc(doc(db, 'contents', content.id), cleanContent);
     } catch (e) {
       console.error("Error updating content: ", e);
       alert("Lỗi khi cập nhật nội dung");

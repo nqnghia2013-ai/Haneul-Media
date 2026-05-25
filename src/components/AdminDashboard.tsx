@@ -452,7 +452,7 @@ export function AdminDashboard() {
                       {['youtube', 'facebook'].includes(contentForm.liveSource || '') && (
                         <div className="flex-[2]">
                           <label className="block text-sm font-bold text-slate-700 mb-1">URL Liên kết trực tiếp</label>
-                          <input required type="url" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.videoUrl} onChange={e => setContentForm({...contentForm, videoUrl: e.target.value})} placeholder="https://" />
+                          <input required type="text" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.videoUrl || ''} onChange={e => setContentForm({...contentForm, videoUrl: e.target.value})} placeholder="https://" />
                         </div>
                       )}
                     </div>
@@ -525,7 +525,7 @@ export function AdminDashboard() {
                     <>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">URL Video</label>
-                        <input required={contentForm.status === 'published'} type="url" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.videoUrl} onChange={e => setContentForm({...contentForm, videoUrl: e.target.value})} />
+                        <input required={contentForm.status === 'published'} type="text" className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" value={contentForm.videoUrl || ''} onChange={e => setContentForm({...contentForm, videoUrl: e.target.value})} />
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-slate-700 mb-1">Thời gian phát sóng (tùy chọn)</label>
