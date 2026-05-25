@@ -35,7 +35,7 @@ export function ContentCard({ content, onOpenDetails }: ContentCardProps) {
         onClick={() => onOpenDetails(content)}
       >
         <img 
-          src={content.thumbnailUrl} 
+          src={content.thumbnailUrl || undefined} 
           alt={content.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
@@ -75,9 +75,9 @@ export function ContentCard({ content, onOpenDetails }: ContentCardProps) {
         <div className="flex-shrink-0">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
             {content.authorImageUrl ? (
-              <img src={content.authorImageUrl} alt={authorName} className="w-full h-full object-cover" />
+              <img src={content.authorImageUrl || undefined} alt={authorName} className="w-full h-full object-cover" />
             ) : author?.imageUrl ? (
-              <img src={author.imageUrl} alt={author.name} className="w-full h-full object-cover" />
+              <img src={author.imageUrl || undefined} alt={author.name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center font-bold text-sm text-slate-400 bg-slate-50">{authorName[0]}</div>
             )}

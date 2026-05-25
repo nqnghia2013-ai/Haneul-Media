@@ -347,7 +347,7 @@ export function AdminDashboard() {
                 ) : members.map(m => (
                   <tr key={m.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3 truncate max-w-[150px] text-slate-900 flex items-center gap-2">
-                       {m.imageUrl ? <img src={m.imageUrl} alt="" className="w-6 h-6 rounded-full object-cover" /> : null}
+                       {m.imageUrl ? <img src={m.imageUrl || undefined} alt="" className="w-6 h-6 rounded-full object-cover" /> : null}
                        {m.name}
                     </td>
                     <td className="px-5 py-3 text-slate-500">{m.role}</td>
@@ -466,7 +466,7 @@ export function AdminDashboard() {
                     </div>
                     {contentForm.authorImageUrl && (
                       <div className="mt-2 w-12 h-12 rounded-full overflow-hidden border border-slate-200">
-                        <img src={contentForm.authorImageUrl} alt="Author Preview" className="w-full h-full object-cover" />
+                        <img src={contentForm.authorImageUrl || undefined} alt="Author Preview" className="w-full h-full object-cover" />
                       </div>
                     )}
                   </div>
@@ -492,7 +492,7 @@ export function AdminDashboard() {
                        />
                        {contentForm.thumbnailUrl && (
                          <div className="mt-2 aspect-video w-32 bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
-                           <img src={contentForm.thumbnailUrl} className="w-full h-full object-cover" alt="Preview" />
+                           <img src={contentForm.thumbnailUrl || undefined} className="w-full h-full object-cover" alt="Preview" />
                          </div>
                        )}
                     </div>

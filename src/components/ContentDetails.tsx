@@ -163,7 +163,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                 if (youtubeEmbedUrl || driveEmbedUrl) {
                   return (
                     <iframe
-                      src={youtubeEmbedUrl || driveEmbedUrl}
+                      src={youtubeEmbedUrl || driveEmbedUrl || undefined}
                       title={content.title}
                       className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -176,8 +176,8 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                   <video 
                     controls 
                     autoPlay
-                    src={content.videoUrl} 
-                    poster={content.thumbnailUrl}
+                    src={content.videoUrl || undefined} 
+                    poster={content.thumbnailUrl || undefined}
                     className="w-full h-full"
                   />
                 );
@@ -194,7 +194,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
           {content.type === 'news' && (
             <div className="w-full aspect-video rounded-3xl overflow-hidden mb-8 shadow-md">
               <img 
-                src={content.thumbnailUrl} 
+                src={content.thumbnailUrl || undefined} 
                 alt={content.title}
                 className="w-full h-full object-cover"
               />
@@ -229,9 +229,9 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shadow-sm">
                  {content.authorImageUrl ? (
-                   <img src={content.authorImageUrl} alt={authorName} className="w-full h-full object-cover" />
+                   <img src={content.authorImageUrl || undefined} alt={authorName} className="w-full h-full object-cover" />
                  ) : author?.imageUrl ? (
-                   <img src={author.imageUrl} alt={author.name} className="w-full h-full object-cover" />
+                   <img src={author.imageUrl || undefined} alt={author.name} className="w-full h-full object-cover" />
                  ) : (
                    <div className="w-full h-full flex items-center justify-center font-bold text-slate-500 bg-slate-50">{authorName[0]}</div>
                  )}
@@ -267,7 +267,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
               <div key={comment.id} className="flex gap-4">
                 <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-600 border border-slate-300 flex items-center justify-center font-bold flex-shrink-0 shadow-sm overflow-hidden">
                   {comment.userAvatar ? (
-                    <img src={comment.userAvatar} alt={comment.userName} className="w-full h-full object-cover" />
+                    <img src={comment.userAvatar || undefined} alt={comment.userName} className="w-full h-full object-cover" />
                   ) : (
                     comment.userName[0]
                   )}
@@ -294,7 +294,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
             <form onSubmit={handleAddComment} className="flex gap-4 items-start">
               <div className="w-10 h-10 rounded-full bg-blue-100 border border-blue-200 text-blue-700 flex items-center justify-center font-bold flex-shrink-0 shadow-sm overflow-hidden">
                  {currentUser.avatar ? (
-                   <img src={currentUser.avatar} alt={currentUser.name} className="w-full h-full object-cover" />
+                   <img src={currentUser.avatar || undefined} alt={currentUser.name} className="w-full h-full object-cover" />
                  ) : (
                    currentUser.name[0]
                  )}

@@ -80,7 +80,7 @@ export function MembersDirectory() {
                     >
                       <div className="w-full md:w-2/5 aspect-square overflow-hidden bg-slate-100">
                         <img 
-                          src={member.imageUrl} 
+                          src={member.imageUrl || undefined} 
                           alt={member.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                         />
@@ -123,7 +123,7 @@ export function MembersDirectory() {
               <div className="flex flex-col md:flex-row max-h-[85vh] overflow-y-auto">
                 <div className="w-full md:w-2/5 shrink-0 relative bg-slate-100 aspect-square md:aspect-auto h-64 md:h-auto">
                   <img 
-                    src={selectedMember.imageUrl} 
+                    src={selectedMember.imageUrl || undefined} 
                     alt={selectedMember.name}
                     className="w-full h-full object-cover"
                   />
