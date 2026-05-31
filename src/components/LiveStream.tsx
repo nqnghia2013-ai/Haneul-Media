@@ -32,6 +32,15 @@ export const LiveViewer = ({ streamId }: { streamId: string }) => {
           console.log("Received track", event.streams);
           if (videoRef.current && event.streams[0]) {
             videoRef.current.srcObject = event.streams[0];
+            
+            // Handle autoplay block
+            videoRef.current.play().catch(e => {
+              console.warn("Autoplay blocked, muting to try again", e);
+              if (videoRef.current) {
+                videoRef.current.muted = true;
+                videoRef.current.play().catch(console.error);
+              }
+            });
             setStatus('');
           }
         };
@@ -49,23 +58,49 @@ export const LiveViewer = ({ streamId }: { streamId: string }) => {
         viewerDocRef = doc(collection(db, 'streams', streamId, 'viewers'));
         await setDoc(viewerDocRef, { offer: { type: offer.type, sdp: offer.sdp } });
 
+        let remoteDescrSet = false;
+        const candidateQueue: RTCIceCandidate[] = [];
+
         // Listen for the broadcaster's answer
-        unsubViewerDoc = onSnapshot(viewerDocRef, (snapshot: any) => {
+        unsubViewerDoc = onSnapshot(viewerDocRef, async (snapshot: any) => {
           const data = snapshot.data();
           if (data && data.answer && !pc?.currentRemoteDescription) {
             console.log("Received answer from broadcaster");
             const rtcAnswer = new RTCSessionDescription(data.answer);
-            pc?.setRemoteDescription(rtcAnswer).catch(console.error);
+            try {
+              await pc?.setRemoteDescription(rtcAnswer);
+              remoteDescrSet = true;
+              
+              // Process any queued ICE candidates
+              for (const candidate of candidateQueue) {
+                try {
+                  await pc?.addIceCandidate(candidate);
+                } catch (e) {
+                  console.error("Error adding queued ice candidate", e);
+                }
+              }
+              candidateQueue.length = 0; // clear queue
+            } catch (e) {
+              console.error("Error setting remote description for viewer:", e);
+            }
           }
         });
 
         // Listen for ice candidates from the broadcaster
         unsubBroadcasterIce = onSnapshot(collection(db, 'streams', streamId, 'viewers', viewerDocRef.id, 'broadcasterIce'), (snapshot: any) => {
-          snapshot.docChanges().forEach((change: any) => {
+          snapshot.docChanges().forEach(async (change: any) => {
             if (change.type === 'added') {
               console.log("Received ICE candidate from broadcaster");
               const candidate = new RTCIceCandidate(change.doc.data());
-              pc?.addIceCandidate(candidate).catch(console.error);
+              if (remoteDescrSet) {
+                try {
+                  await pc?.addIceCandidate(candidate);
+                } catch (e) {
+                  console.error("Error adding ice candidate:", e);
+                }
+              } else {
+                candidateQueue.push(candidate);
+              }
             }
           });
         });
@@ -107,6 +142,7 @@ export const LiveViewer = ({ streamId }: { streamId: string }) => {
         ref={videoRef}
         autoPlay
         playsInline
+        controls
         className="w-full h-full object-contain"
       />
     </div>

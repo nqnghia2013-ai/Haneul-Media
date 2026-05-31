@@ -185,13 +185,14 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                 }
 
                 const getYoutubeEmbedUrl = (url: string = '') => {
+                  if (!url.includes('youtube.com') && !url.includes('youtu.be')) return null;
                   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|live\/)([^#&?]*).*/;
                   const match = url.match(regExp);
                   return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}?autoplay=1` : null;
                 };
                 const getFacebookEmbedUrl = (url: string = '') => {
-                  if (!url.includes('facebook.com')) return null;
-                  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=0&width=auto`;
+                  if (!url.includes('facebook.com') && !url.includes('fb.watch') && !url.includes('fb.gg')) return null;
+                  return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
                 };
                 const getDriveEmbedUrl = (url: string = '') => {
                   const regExp = /\/file\/d\/([a-zA-Z0-9_-]+)/;
@@ -207,7 +208,7 @@ export function ContentDetails({ content: propContent, onBack }: ContentDetailsP
                       src={embedUrl}
                       title={content.title}
                       className="w-full h-full"
-                      allow="camera; microphone; display-capture; fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allow="camera; microphone; display-capture; fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                       allowFullScreen
                     />
                   );
